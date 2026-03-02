@@ -14,6 +14,8 @@ interface PdfViewerProps {
 
 export function PdfViewer({
   pdfDocument,
+  pagesPerView,
+  currentPage,
   zoomLevel,
   scrollMode,
   onPageChange,
@@ -60,12 +62,18 @@ export function PdfViewer({
 
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const pageNum = parseInt(entry.target.getAttribute('data-page-number') || '1');
-            onPageChange(pageNum);
-          }
-        });
+        // Find the first (leftmost/topmost) intersecting page
+        const visiblePages = entries
+          .filter((entry) => entry.isIntersecting)
+          .map((entry) => ({
+            pageNum: parseInt(entry.target.getAttribute('data-page-number') || '1'),
+            target: entry.target as HTMLElement,
+          }))
+          .sort((a, b) => a.pageNum - b.pageNum);
+
+        if (visiblePages.length > 0) {
+          onPageChange(visiblePages[0].pageNum);
+        }
       },
       { threshold: 0.5 }
     );
@@ -75,6 +83,52 @@ export function PdfViewer({
 
     return () => observer.disconnect();
   }, [pagesToRender, onPageChange]);
+
+  // Handle keyboard navigation for arrow keys
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!containerRef.current) return;
+
+      let targetPage: number | null = null;
+      const pageAdvance = Math.min(pagesPerView, 1);
+
+      // Arrow keys: Left/Up = previous page (decrement), Right/Down = next page (increment)
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+        targetPage = Math.max(currentPage - pageAdvance, 1);
+      } else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+        targetPage = Math.min(currentPage + pageAdvance, pdfDocument.numPages);
+      }
+
+      console.log(`Key pressed: ${event.key}, target page: ${targetPage}, current page: ${currentPage}, pages per view: ${pagesPerView}`);
+
+      if (targetPage !== null) {
+        event.preventDefault();
+        
+        // Find the target page element
+        const targetElement = containerRef.current.querySelector(`[data-page-number="${targetPage}"]`);
+        if (targetElement) {
+          // Temporarily disable smooth scrolling for instant navigation
+          const container = containerRef.current;
+          const originalScrollBehavior = container.style.scrollBehavior;
+          container.style.scrollBehavior = 'auto';
+          
+          // Scroll to the target page instantly
+          targetElement.scrollIntoView({ block: 'start', inline: 'start' });
+          
+          // Restore smooth scrolling after a brief delay
+          setTimeout(() => {
+            container.style.scrollBehavior = originalScrollBehavior;
+          }, 0);
+
+          // Update current page
+          onPageChange(targetPage);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentPage, pagesPerView, pdfDocument.numPages, onPageChange]);
 
   return (
     <div
