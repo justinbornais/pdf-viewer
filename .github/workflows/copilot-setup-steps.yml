@@ -1,0 +1,16 @@
+name: Copilot Setup Steps
+on: workflow_dispatch
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # CONFIGURE: Uncomment and customize for your project's language and runtime
+      # - uses: actions/setup-node@v4
+      #   with:
+      #     node-version: '20'
+
+      # CONFIGURE: Uncomment and customize for your dependency installation
+      # - run: npm ci

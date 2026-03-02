@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "bash": "if echo \"$TOOL_INPUT\" | grep -qE 'git push.*(-f|--force).*main|git push.*(-f|--force).*master'; then echo '{\"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"Force push to main/master is blocked. Use a feature branch instead.\"}'; fi",
+        "comment": "Block force pushes to main/master"
+      },
+      {
+        "type": "command",
+        "bash": "if echo \"$TOOL_INPUT\" | grep -qE 'rm -rf|git reset --hard|git clean -f'; then echo '{\"permissionDecision\": \"ask\", \"permissionDecisionReason\": \"This is a destructive command. Please confirm.\"}'; fi",
+        "comment": "Warn before destructive commands"
+      }
+    ]
+  }
+}
