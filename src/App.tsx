@@ -84,19 +84,54 @@ function App() {
   }, [pdfDocument]);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div 
+      className="min-h-screen bg-gray-900 text-white"
+      style={{
+        minHeight: '100vh',
+        backgroundColor: '#111827',
+        color: 'white',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       {error && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 max-w-2xl">
-          <div className="flex items-center gap-3">
-            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div 
+          className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 max-w-2xl"
+          style={{
+            position: 'fixed',
+            top: '1rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: '#dc2626',
+            color: 'white',
+            padding: '0.75rem 1.5rem',
+            borderRadius: '0.5rem',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+            zIndex: 50,
+            maxWidth: '56rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ width: '1.25rem', height: '1.25rem', flexShrink: 0 }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <span>{error}</span>
             <button
               onClick={() => setError(null)}
               className="ml-auto hover:bg-red-700 rounded p-1"
+              style={{
+                marginLeft: 'auto',
+                backgroundColor: 'transparent',
+                border: 'none',
+                borderRadius: '0.25rem',
+                padding: '0.25rem',
+                color: 'white',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#b91c1c')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ width: '1rem', height: '1rem' }}>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -105,7 +140,7 @@ function App() {
       )}
 
       {!pdfDocument ? (
-        <div className="flex items-center justify-center min-h-screen">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
           <PdfLoader onPdfLoad={handlePdfLoad} onError={handleError} />
         </div>
       ) : (

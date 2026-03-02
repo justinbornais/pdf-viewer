@@ -91,13 +91,27 @@ export function PdfViewer({
         ${scrollMode === 'horizontal' ? 'flex-row overflow-x-auto' : 'flex-col overflow-y-auto'}
         h-screen w-full
       `}
-      style={{ scrollBehavior: 'smooth' }}
+      style={{
+        display: 'flex',
+        gap: '1.25rem',
+        padding: '1.25rem',
+        flexDirection: scrollMode === 'horizontal' ? 'row' : 'column',
+        overflowX: scrollMode === 'horizontal' ? 'auto' : 'hidden',
+        overflowY: scrollMode === 'vertical' ? 'auto' : 'hidden',
+        height: '100vh',
+        width: '100%',
+        scrollBehavior: 'smooth',
+        backgroundColor: '#111827',
+      }}
     >
       {pagesToRender.map((pageNum) => (
         <div
           key={pageNum}
           data-page-number={pageNum}
           className="flex-shrink-0"
+          style={{
+            flexShrink: 0,
+          }}
         >
           <PageCanvas
             pdfDocument={pdfDocument}
@@ -106,7 +120,15 @@ export function PdfViewer({
             width={pageWidth}
             height={pageHeight}
           />
-          <div className="text-center mt-2 text-sm text-gray-400">
+          <div 
+            className="text-center mt-2 text-sm text-gray-400"
+            style={{
+              textAlign: 'center',
+              marginTop: '0.5rem',
+              fontSize: '0.875rem',
+              color: '#9ca3af',
+            }}
+          >
             Page {pageNum} of {pdfDocument.numPages}
           </div>
         </div>
