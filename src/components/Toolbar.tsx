@@ -1,6 +1,8 @@
 interface ToolbarProps {
   zoomLevel: number;
   scrollMode: 'horizontal' | 'vertical';
+  currentPage: number;
+  totalPages: number;
   onZoomChange: (zoom: number) => void;
   onScrollModeChange: (mode: 'horizontal' | 'vertical') => void;
   onDownload: () => void;
@@ -9,6 +11,8 @@ interface ToolbarProps {
 export function Toolbar({
   zoomLevel,
   scrollMode,
+  currentPage,
+  totalPages,
   onZoomChange,
   onScrollModeChange,
   onDownload,
@@ -68,6 +72,20 @@ export function Toolbar({
         }}
       >
         {Math.round(zoomLevel * 100)}%
+      </div>
+
+      <div 
+        className="flex items-center px-3 text-sm font-medium"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 0.75rem',
+          fontSize: '0.875rem',
+          fontWeight: '500',
+          color: '#9ca3af',
+        }}
+      >
+        {currentPage} / {totalPages}
       </div>
 
       <button

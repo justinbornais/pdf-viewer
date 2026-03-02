@@ -28,11 +28,16 @@ function App() {
     setCurrentPage(1);
     setError(null);
 
-    // Get first page to calculate aspect ratio
+    // Get first page to calculate aspect ratio and initial zoom
     const page = await pdf.getPage(1);
     const viewport = page.getViewport({ scale: 1 });
     const aspectRatio = viewport.width / viewport.height;
     setPageAspectRatio(aspectRatio);
+
+    // Calculate initial zoom to fit maximum viewport height
+    const maxHeight = window.innerHeight - 20;
+    const initialZoom = maxHeight / viewport.height;
+    setZoomLevel(initialZoom);
 
     // Calculate initial pages per view
     const pages = calculatePagesPerView(
@@ -41,6 +46,15 @@ function App() {
       aspectRatio
     );
     setPagesPerView(pages);
+
+    // Reset scroll position to top-left
+    setTimeout(() => {
+      const scrollContainer = document.querySelector('[data-pdf-viewer-container]');
+      if (scrollContainer) {
+        scrollContainer.scrollLeft = 0;
+        scrollContainer.scrollTop = 0;
+      }
+    }, 0);
   }, [viewportDimensions]);
 
   // Handle errors
@@ -66,13 +80,13 @@ function App() {
     const params = new URLSearchParams(window.location.search);
     const pdfUrl = params.get('pdf');
     
-    if (pdfUrl) {
+    if (pdfUrl && !pdfDocument) {
       const decodedUrl = decodeURIComponent(pdfUrl);
       loadPdfFromUrl(decodedUrl)
         .then(handlePdfLoad)
         .catch((err) => handleError(err.message));
     }
-  }, [handlePdfLoad, handleError]);
+  }, []);
 
   // Handle download
   const handleDownload = useCallback(() => {
@@ -157,6 +171,8 @@ function App() {
           <Toolbar
             zoomLevel={zoomLevel}
             scrollMode={scrollMode}
+            currentPage={currentPage}
+            totalPages={pdfDocument.numPages}
             onZoomChange={setZoomLevel}
             onScrollModeChange={setScrollMode}
             onDownload={handleDownload}

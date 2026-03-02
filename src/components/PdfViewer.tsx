@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { PageCanvas } from './PageCanvas';
-import { getVisiblePageRange } from '../utils/pagination';
 
 interface PdfViewerProps {
   pdfDocument: PDFDocumentProxy;
@@ -15,8 +14,6 @@ interface PdfViewerProps {
 
 export function PdfViewer({
   pdfDocument,
-  pagesPerView,
-  currentPage,
   zoomLevel,
   scrollMode,
   onPageChange,
@@ -26,38 +23,34 @@ export function PdfViewer({
   const [pageHeight, setPageHeight] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Calculate page dimensions
+  // Calculate page dimensions based on scroll mode
   useEffect(() => {
     const calculateDimensions = async () => {
       const page = await pdfDocument.getPage(1);
       const viewport = page.getViewport({ scale: 1 });
+      const aspectRatio = viewport.width / viewport.height;
       
-      const availableWidth = (viewportDimensions.width - 40) / pagesPerView - 20;
-      const availableHeight = viewportDimensions.height - 120;
-      
-      const scale = Math.min(
-        availableWidth / viewport.width,
-        availableHeight / viewport.height
-      );
-      
-      setPageWidth(viewport.width * scale);
-      setPageHeight(viewport.height * scale);
+      if (scrollMode === 'horizontal') {
+        // Horizontal scroll: height is 100vh, width scales to maintain aspect ratio
+        const maxHeight = viewportDimensions.height - 20; // 10px margin top/bottom
+        const width = maxHeight * aspectRatio * zoomLevel;
+        setPageHeight(maxHeight);
+        setPageWidth(width);
+      } else {
+        // Vertical scroll: width is 100vw, height scales to maintain aspect ratio
+        const maxWidth = viewportDimensions.width - 20; // 10px margin left/right
+        const height = maxWidth / aspectRatio * zoomLevel;
+        setPageWidth(maxWidth);
+        setPageHeight(height);
+      }
     };
 
     calculateDimensions();
-  }, [pdfDocument, pagesPerView, viewportDimensions]);
+  }, [pdfDocument, scrollMode, viewportDimensions, zoomLevel]);
 
-  // Calculate visible pages
-  const visibleRange = getVisiblePageRange(
-    currentPage,
-    pagesPerView,
-    2, // buffer
-    pdfDocument.numPages
-  );
-
-  // Generate array of page numbers to render
+  // Generate array of all page numbers to render
   const pagesToRender = [];
-  for (let i = visibleRange.start; i <= visibleRange.end; i++) {
+  for (let i = 1; i <= pdfDocument.numPages; i++) {
     pagesToRender.push(i);
   }
 
@@ -86,15 +79,16 @@ export function PdfViewer({
   return (
     <div
       ref={containerRef}
+      data-pdf-viewer-container
       className={`
-        flex gap-5 p-5
+        flex
         ${scrollMode === 'horizontal' ? 'flex-row overflow-x-auto' : 'flex-col overflow-y-auto'}
         h-screen w-full
       `}
       style={{
         display: 'flex',
-        gap: '1.25rem',
-        padding: '1.25rem',
+        gap: '4px',
+        padding: '10px',
         flexDirection: scrollMode === 'horizontal' ? 'row' : 'column',
         overflowX: scrollMode === 'horizontal' ? 'auto' : 'hidden',
         overflowY: scrollMode === 'vertical' ? 'auto' : 'hidden',
@@ -102,6 +96,7 @@ export function PdfViewer({
         width: '100%',
         scrollBehavior: 'smooth',
         backgroundColor: '#111827',
+        alignItems: scrollMode === 'horizontal' ? 'center' : 'stretch',
       }}
     >
       {pagesToRender.map((pageNum) => (
@@ -111,6 +106,9 @@ export function PdfViewer({
           className="flex-shrink-0"
           style={{
             flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           <PageCanvas
@@ -120,17 +118,6 @@ export function PdfViewer({
             width={pageWidth}
             height={pageHeight}
           />
-          <div 
-            className="text-center mt-2 text-sm text-gray-400"
-            style={{
-              textAlign: 'center',
-              marginTop: '0.5rem',
-              fontSize: '0.875rem',
-              color: '#9ca3af',
-            }}
-          >
-            Page {pageNum} of {pdfDocument.numPages}
-          </div>
         </div>
       ))}
     </div>
